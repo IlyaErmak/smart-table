@@ -7,8 +7,9 @@ import {initData} from "./data.js";
 import {processFormData} from "./lib/utils.js";
 
 import {initTable} from "./components/table.js";
-// @todo: подключение
-
+import {initPagination} from "./components/pagination.js";
+import {initFiltering} from "./components/filtering.js";
+import {initSorting} from "./components/sorting.js";
 
 // Исходные данные используемые в render()
 const {data, ...indexes} = initData(sourceData);
@@ -18,10 +19,14 @@ const {data, ...indexes} = initData(sourceData);
  * @returns {Object}
  */
 function collectState() {
-    const state = processFormData(new FormData(sampleTable.container));
+    const formData = processFormData(new FormData(sampleTable.container));
+    const rowsPerPage = parseInt(formData.rowsPerPage);
+    const page = parseInt(formData.page ?? 1);
 
     return {
-        ...state
+        ...formData,
+        rowsPerPage,
+        page
     };
 }
 
@@ -30,23 +35,43 @@ function collectState() {
  * @param {HTMLButtonElement?} action
  */
 function render(action) {
-    let state = collectState(); // состояние полей из таблицы
+    const state = collectState(); // состояние полей из таблицы
     let result = [...data]; // копируем для последующего изменения
-    // @todo: использование
+    
+    result = applyFiltering(result, state, action);
+    result = applySorting(result, state, action);
+    result = applyPagination(result, state, action);
 
-
-    sampleTable.render(result)
+    sampleTable.render(result);
 }
 
 const sampleTable = initTable({
     tableTemplate: 'table',
     rowTemplate: 'row',
-    before: [],
-    after: []
+    before: ['header', 'filter'],
+    after: ['pagination']
 }, render);
 
-// @todo: инициализация
+const applySorting = initSorting([ 
+    sampleTable.header.elements.sortByDate,
+    sampleTable.header.elements.sortByTotal
+]); 
 
+const applyFiltering = initFiltering(sampleTable.filter.elements, {
+    searchBySeller: indexes.sellers  
+});
+
+const applyPagination = initPagination(
+    sampleTable.pagination.elements,             
+    (el, page, isCurrent) => {                    
+        const input = el.querySelector('input');
+        const label = el.querySelector('span');
+        input.value = page;
+        input.checked = isCurrent;
+        label.textContent = page;
+        return el;
+    }
+);
 
 const appRoot = document.querySelector('#app');
 appRoot.appendChild(sampleTable.container);
