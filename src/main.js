@@ -1,17 +1,17 @@
 import './fonts/ys-display/fonts.css'
 import './style.css'
 
-import {initData} from "./data.js";
-import {processFormData} from "./lib/utils.js";
+import { data as sourceData } from "./data/dataset_1.js";
+import { initData } from "./data.js";
+import { processFormData } from "./lib/utils.js";
 
 import {initTable} from "./components/table.js";
 import {initPagination} from "./components/pagination.js";
 import {initFiltering} from "./components/filtering.js";
 import {initSorting} from "./components/sorting.js";
+import { initSearching } from "./components/searching.js";
 
-let api;
-let indexes;
-
+const api = initData(sourceData);
 /**
  * Сбор и обработка полей из таблицы
  * @returns {Object}
@@ -33,7 +33,7 @@ function collectState() {
  * @param {HTMLButtonElement?} action
  */
 async function render(action) {
-    const state = collectState(); // состояние полей из таблицы
+    let state = collectState(); // состояние полей из таблицы
     let query = {};
 
     query = applyFiltering(query, state, action);
@@ -49,7 +49,7 @@ async function render(action) {
 const sampleTable = initTable({
     tableTemplate: 'table',
     rowTemplate: 'row',
-    before: ['header', 'filter'],
+    before: ['search','header', 'filter'],
     after: ['pagination']
 }, render);
 
@@ -58,9 +58,8 @@ const applySorting = initSorting([
     sampleTable.header.elements.sortByTotal
 ]); 
 
-const { applyFiltering, updateIndexes } = initFiltering(sampleTable.filter.elements, {
-    searchBySeller: null
-});
+const { applyFiltering, updateIndexes } = initFiltering(sampleTable.filter.elements);
+const applySearching = initSearching(sampleTable.search.elements.search.name);
 
 const { applyPagination, updatePagination } = initPagination(
     sampleTable.pagination.elements,             
@@ -78,14 +77,12 @@ const appRoot = document.querySelector('#app');
 appRoot.appendChild(sampleTable.container);
 
 async function init() {
-    api = await initData();
-    indexes = await api.getIndexes();
+    const indexes = await api.getIndexes();
 
     updateIndexes(sampleTable.filter.elements, {
         searchBySeller: indexes.sellers
     });
 
-    applyFiltering.searchBySeller = indexes.sellers;
 }
 
 init().then(() => render());

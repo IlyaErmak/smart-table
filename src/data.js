@@ -1,3 +1,5 @@
+import {makeIndex} from "./lib/utils.js";
+
 const BASE_URL = 'https://webinars.webdev.education-services.ru/sp7-api';
 
 export function initData() {
@@ -9,30 +11,17 @@ export function initData() {
     const mapRecords = (data) => data.map(item => ({
         id: item.receipt_id,
         date: item.date,
-        seller: sellers[item.seller_id] || 'Неизвестно',
-        customer: customers[item.customer_id] || 'Неизвестно',
+        seller: sellers[item.seller_id],
+        customer: customers[item.customer_id],
         total: item.total_amount
     }));
 
     const getIndexes = async () => {
         if (!sellers || !customers) {
-            const [sellersRaw, customersRaw] = await Promise.all([
+            [sellers, customers] = await Promise.all([
                 fetch(`${BASE_URL}/sellers`).then(res => res.json()),
                 fetch(`${BASE_URL}/customers`).then(res => res.json())
             ]);
-
-            const sellersData = sellersRaw.items || sellersRaw;
-            const customersData = customersRaw.items || customersRaw;
-
-            sellers = sellersData.reduce((acc, item) => {
-                acc[item.id] = `${item.first_name} ${item.last_name}`;
-                return acc;
-            }, {});
-
-            customers = customersData.reduce((acc, item) => {
-                acc[item.id] = `${item.first_name} ${item.last_name}`;
-                return acc;
-            }, {});
         }
         return { sellers, customers };
     };
