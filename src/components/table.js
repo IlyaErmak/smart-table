@@ -34,6 +34,7 @@ export function initTable(settings, onAction) {
         e.preventDefault();
         onAction(e.submitter);
     });
+
     const render = (data) => {
         const nextRows = data.map((item) => {
             const row = cloneTemplate(rowTemplate);
@@ -44,7 +45,7 @@ export function initTable(settings, onAction) {
                 }
             });
     
-            return row;
+            return row.container;
         });
     
         root.elements.rows.replaceChildren(...nextRows);
