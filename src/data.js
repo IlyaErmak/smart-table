@@ -1,5 +1,3 @@
-import {makeIndex} from "./lib/utils.js";
-
 const BASE_URL = 'https://webinars.webdev.education-services.ru/sp7-api';
 
 export function initData() {
@@ -8,7 +6,7 @@ export function initData() {
     let lastResult;
     let lastQuery;
 
-    const mapRecords = (data) => data.map(item => ({
+    const mapRecords = (data) => data.map((item) => ({
         id: item.receipt_id,
         date: item.date,
         seller: sellers[item.seller_id],
